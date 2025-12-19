@@ -115,6 +115,21 @@
         margin: 0 0 8px;
         letter-spacing: 0.4px;
         color: #f8fafc;
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .group-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 999px;
+        color: #e5e7eb;
+        font-size: 13px;
       }
 
       .select-row {
@@ -403,6 +418,33 @@
     </main>
 
     <script>
+      const flags = {
+        Maroc: "🇲🇦",
+        Mali: "🇲🇱",
+        Zambie: "🇿🇲",
+        Comores: "🇰🇲",
+        Égypte: "🇪🇬",
+        "Afrique du Sud": "🇿🇦",
+        Angola: "🇦🇴",
+        Zimbabwe: "🇿🇼",
+        Nigéria: "🇳🇬",
+        Tunisie: "🇹🇳",
+        Ouganda: "🇺🇬",
+        Tanzanie: "🇹🇿",
+        Sénégal: "🇸🇳",
+        "RD Congo": "🇨🇩",
+        Bénin: "🇧🇯",
+        Botswana: "🇧🇼",
+        Algérie: "🇩🇿",
+        "Burkina Faso": "🇧🇫",
+        "Guinée Équatoriale": "🇬🇶",
+        Soudan: "🇸🇩",
+        "Côte d'Ivoire": "🇨🇮",
+        Cameroun: "🇨🇲",
+        Gabon: "🇬🇦",
+        Mozambique: "🇲🇿",
+      };
+
       const groups = {
         A: ["Maroc", "Mali", "Zambie", "Comores"],
         B: ["Égypte", "Afrique du Sud", "Angola", "Zimbabwe"],
@@ -453,6 +495,8 @@
 
       const rankPoints = { 1: 6, 2: 4, 3: 2, 4: 0 };
 
+      const formatTeam = (team) => `${flags[team] || "🏳️"} ${team}`;
+
       function buildGroupCards() {
         const grid = document.getElementById("groupGrid");
         grid.innerHTML = "";
@@ -463,6 +507,10 @@
 
           const title = document.createElement("h3");
           title.textContent = `Groupe ${letter}`;
+          const chip = document.createElement("span");
+          chip.className = "group-chip";
+          chip.textContent = `${letter} · ${teams.length} équipes`;
+          title.append(chip);
 
           const rows = teams.map((_, idx) => {
             const row = document.createElement("div");
@@ -476,7 +524,9 @@
             select.id = label.htmlFor;
             select.dataset.group = letter;
             select.dataset.rank = position;
-            select.innerHTML = `<option value="">Choisir</option>${teams.map((t) => `<option value="${t}">${t}</option>`).join("")}`;
+            select.innerHTML = `<option value="">Choisir</option>${teams
+              .map((t) => `<option value="${t}">${formatTeam(t)}</option>`)
+              .join("")}`;
             row.append(label, select);
             return row;
           });
@@ -578,11 +628,11 @@
         Object.entries(selections).forEach(([group, order]) => {
           firstList.insertAdjacentHTML(
             "beforeend",
-            `<div class="pill"><strong>${order[0]}</strong><span class="muted">(${group} - 1er)</span></div>`,
+            `<div class="pill"><strong>${formatTeam(order[0])}</strong><span class="muted">(${group} - 1er)</span></div>`,
           );
           secondList.insertAdjacentHTML(
             "beforeend",
-            `<div class="pill"><strong>${order[1]}</strong><span class="muted">(${group} - 2e)</span></div>`,
+            `<div class="pill"><strong>${formatTeam(order[1])}</strong><span class="muted">(${group} - 2e)</span></div>`,
           );
         });
 
@@ -593,7 +643,7 @@
         thirds.forEach((t, idx) => {
           thirdList.insertAdjacentHTML(
             "beforeend",
-            `<div class="pill"><strong>${t.team}</strong><span class="muted">(${t.group} - 3e · #${idx + 1})</span></div>`,
+            `<div class="pill"><strong>${formatTeam(t.team)}</strong><span class="muted">(${t.group} - 3e · #${idx + 1})</span></div>`,
           );
         });
 
@@ -601,6 +651,16 @@
           thirdList.insertAdjacentHTML("beforeend", `<div class="muted">Pas assez de groupes complets pour déterminer les repêchés.</div>`);
         }
       }
+
+      const renderName = (team, fallback) => {
+        if (!team) return fallback || "À déterminer";
+        return formatTeam(team);
+      };
+
+      const setTeamElement = (el, team, placeholder) => {
+        el.querySelector(".name").textContent = renderName(team, placeholder);
+        el.classList.toggle("placeholder", !team);
+      };
 
       function resolvePlaceholder(code, selections) {
         const direct = code.match(/^([123])([A-F])$/);
@@ -640,8 +700,7 @@
         if (!target) return;
         target.teams[slot] = team;
         const element = slot === "home" ? target.homeEl : target.awayEl;
-        element.querySelector(".name").textContent = team || target.match[`${slot}Placeholder`] || "À déterminer";
-        element.classList.toggle("placeholder", !team);
+        setTeamElement(element, team, target.match[`${slot}Placeholder`] || target.match[slot] || "À déterminer");
 
         if (target.selected && target.selected !== team) {
           target.selected = null;
@@ -660,7 +719,7 @@
         if (!node || !team) return;
 
         node.selected = team;
-        node.winnerEl.textContent = `Vainqueur : ${team}`;
+        node.winnerEl.textContent = `Vainqueur : ${formatTeam(team)}`;
         node.homeEl.classList.toggle("selected", node.teams.home === team);
         node.awayEl.classList.toggle("selected", node.teams.away === team);
 
@@ -668,7 +727,7 @@
           assignTeamToMatch(node.match.next, node.match.slot, team);
         } else if (matchId === "F-1") {
           const badge = document.getElementById("championBadge");
-          badge.textContent = `Champion : ${team}`;
+          badge.textContent = `Champion : ${formatTeam(team)}`;
         }
       }
 
@@ -676,7 +735,7 @@
         const el = document.createElement("div");
         el.className = "team placeholder";
         el.dataset.slot = slot;
-        el.innerHTML = `<div>
+        el.innerHTML = `<div style="display:flex; flex-direction:column; gap:2px;">
             <div class="name">${label}</div>
             <div class="hint">${slot === "home" ? "Équipe 1" : "Équipe 2"}</div>
           </div>
@@ -753,10 +812,8 @@
         Object.keys(state.matchNodes).forEach((id) => {
           const node = state.matchNodes[id];
           node.teams = { home: "", away: "" };
-          node.homeEl.querySelector(".name").textContent = node.match.home || node.match.homePlaceholder || "À déterminer";
-          node.awayEl.querySelector(".name").textContent = node.match.away || node.match.awayPlaceholder || "À déterminer";
-          node.homeEl.classList.add("placeholder");
-          node.awayEl.classList.add("placeholder");
+          setTeamElement(node.homeEl, "", node.match.home || node.match.homePlaceholder || "À déterminer");
+          setTeamElement(node.awayEl, "", node.match.away || node.match.awayPlaceholder || "À déterminer");
           node.homeEl.classList.remove("selected");
           node.awayEl.classList.remove("selected");
           node.winnerEl.textContent = "Aucun vainqueur pour l'instant";
