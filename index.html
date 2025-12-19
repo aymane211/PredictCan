@@ -1,1 +1,797 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulation CAN Maroc 2025</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: #111827;
+        --muted: #9ca3af;
+        --accent: #f97316;
+        --accent-strong: #fb923c;
+        --line: #1f2937;
+        --success: #22c55e;
+        --danger: #ef4444;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        --radius: 14px;
+        --transition: 150ms ease;
+      }
 
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        background: radial-gradient(circle at 20% 20%, rgba(249, 115, 22, 0.08), transparent 35%), radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.06), transparent 30%), var(--bg);
+        color: #e5e7eb;
+        min-height: 100vh;
+      }
+
+      header {
+        padding: 28px 24px 10px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(24px, 3vw, 34px);
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      h1 span.badge {
+        background: rgba(249, 115, 22, 0.15);
+        color: #fed7aa;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 13px;
+        border: 1px solid rgba(249, 115, 22, 0.4);
+      }
+
+      .tabs {
+        display: inline-flex;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 14px;
+        padding: 4px;
+        gap: 4px;
+      }
+
+      .tab {
+        border: none;
+        background: transparent;
+        color: #e5e7eb;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background var(--transition), color var(--transition), transform var(--transition);
+      }
+
+      .tab.active {
+        background: linear-gradient(135deg, rgba(249, 115, 22, 0.9), rgba(234, 88, 12, 0.85));
+        color: #0f172a;
+        box-shadow: var(--shadow);
+        transform: translateY(-1px);
+      }
+
+      main {
+        padding: 12px 20px 40px;
+      }
+
+      .panel {
+        display: none;
+        animation: fadeIn 180ms ease;
+      }
+
+      .panel.active {
+        display: block;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: var(--radius);
+        padding: 16px;
+        box-shadow: var(--shadow);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 14px;
+      }
+
+      .group-card h3 {
+        margin: 0 0 8px;
+        letter-spacing: 0.4px;
+        color: #f8fafc;
+      }
+
+      .select-row {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        align-items: center;
+        gap: 10px;
+        margin: 8px 0;
+      }
+
+      .select-row label {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      select {
+        width: 100%;
+        padding: 10px 12px;
+        background: #0b1222;
+        border: 1px solid var(--line);
+        color: #e5e7eb;
+        border-radius: 10px;
+        outline: none;
+        transition: border var(--transition), transform var(--transition), box-shadow var(--transition);
+      }
+
+      select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+        transform: translateY(-1px);
+      }
+
+      .actions {
+        margin-top: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      button.filled,
+      button.ghost {
+        border: none;
+        border-radius: 12px;
+        padding: 12px 16px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        transition: transform var(--transition), box-shadow var(--transition), background var(--transition), color var(--transition);
+      }
+
+      button.filled {
+        background: linear-gradient(135deg, #f97316, #ea580c);
+        color: #0b0f1a;
+        box-shadow: var(--shadow);
+      }
+
+      button.ghost {
+        background: rgba(255, 255, 255, 0.06);
+        color: #e5e7eb;
+        border: 1px solid var(--line);
+      }
+
+      button.filled:hover,
+      button.ghost:hover {
+        transform: translateY(-1px);
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .qualifiers {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 12px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        margin: 4px 6px 4px 0;
+        font-size: 14px;
+      }
+
+      .pill strong {
+        color: #fef3c7;
+        letter-spacing: 0.2px;
+      }
+
+      .divider {
+        margin: 22px 0 12px;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+      }
+
+      /* Bracket */
+      .bracket-wrapper {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(220px, 1fr));
+        gap: 12px;
+        align-items: start;
+      }
+
+      .round-title {
+        margin: 0 0 10px;
+        color: #f1f5f9;
+      }
+
+      .match {
+        background: linear-gradient(145deg, #0c1221, #0d1627);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: var(--radius);
+        padding: 12px;
+        box-shadow: var(--shadow);
+      }
+
+      .match h4 {
+        margin: 0 0 10px;
+        font-size: 15px;
+        color: #e2e8f0;
+      }
+
+      .team {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin: 6px 0;
+        cursor: pointer;
+        transition: border var(--transition), transform var(--transition), background var(--transition);
+      }
+
+      .team.placeholder {
+        opacity: 0.6;
+        font-style: italic;
+        cursor: not-allowed;
+      }
+
+      .team:hover:not(.placeholder) {
+        transform: translateY(-1px);
+        border-color: var(--accent);
+        background: rgba(249, 115, 22, 0.05);
+      }
+
+      .team .name {
+        font-weight: 600;
+      }
+
+      .team .hint {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .team.selected {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+        background: rgba(249, 115, 22, 0.12);
+      }
+
+      .winner {
+        margin-top: 8px;
+        font-size: 13px;
+        color: #bbf7d0;
+        font-weight: 600;
+      }
+
+      .champion {
+        margin-bottom: 16px;
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        padding: 12px 14px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: #052e16;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+
+      .alert {
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.14);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        color: #fecdd3;
+        margin: 10px 0 0;
+        display: none;
+      }
+
+      .alert.show {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 960px) {
+        .bracket-wrapper {
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>
+        Simulation CAN 2025
+        <span class="badge">Maroc · vanilla JS</span>
+      </h1>
+      <div class="tabs">
+        <button class="tab active" data-target="groups">Groupes</button>
+        <button class="tab" data-target="bracket">Tableau final</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="groups" class="panel active card">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+          <div>
+            <h2 style="margin: 0 0 6px;">Phase de groupes</h2>
+            <p class="muted" style="margin: 0;">
+              Classe les équipes 1 → 3 dans chaque groupe (la 4e est déduite). Les 1er/2e sont qualifiés
+              automatiquement. Les quatre meilleurs 3e sont choisis par score fictif (égalité : ordre alphabétique).
+            </p>
+          </div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button class="ghost" id="resetAll">Réinitialiser</button>
+            <button class="filled" id="validateGroups">Valider les classements</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div id="groupGrid" class="grid"></div>
+        <div id="groupError" class="alert"></div>
+
+        <div class="divider"></div>
+        <div>
+          <h3 style="margin: 0 0 6px;">Équipes qualifiées</h3>
+          <div class="qualifiers">
+            <div class="card" style="padding: 12px;">
+              <h4 style="margin: 0 0 8px; color: #f1f5f9;">Premiers</h4>
+              <div id="firstList"></div>
+            </div>
+            <div class="card" style="padding: 12px;">
+              <h4 style="margin: 0 0 8px; color: #f1f5f9;">Deuxièmes</h4>
+              <div id="secondList"></div>
+            </div>
+            <div class="card" style="padding: 12px;">
+              <h4 style="margin: 0 0 8px; color: #f1f5f9;">Meilleurs troisièmes</h4>
+              <div id="thirdList" class="muted">Complétez les groupes pour calculer les repêchés.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="bracket" class="panel card">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h2 style="margin: 0 0 6px;">Tableau à élimination directe</h2>
+            <p class="muted" style="margin: 0;">Choisis le vainqueur de chaque affiche pour faire avancer l'équipe.</p>
+          </div>
+          <div class="champion" id="championBadge">En attente de finale</div>
+        </div>
+
+        <div class="divider"></div>
+        <div id="bracketGrid" class="bracket-wrapper"></div>
+      </section>
+    </main>
+
+    <script>
+      const groups = {
+        A: ["Maroc", "Mali", "Zambie", "Comores"],
+        B: ["Égypte", "Afrique du Sud", "Angola", "Zimbabwe"],
+        C: ["Nigéria", "Tunisie", "Ouganda", "Tanzanie"],
+        D: ["Sénégal", "RD Congo", "Bénin", "Botswana"],
+        E: ["Algérie", "Burkina Faso", "Guinée Équatoriale", "Soudan"],
+        F: ["Côte d'Ivoire", "Cameroun", "Gabon", "Mozambique"],
+      };
+
+      const bracketTemplate = {
+        "Huitièmes": [
+          { id: "R16-1", label: "1D vs 3B/E/F", home: "1D", away: "3B/E/F", next: "QF-1", slot: "home" },
+          { id: "R16-2", label: "2A vs 2C", home: "2A", away: "2C", next: "QF-1", slot: "away" },
+          { id: "R16-3", label: "1B vs 3A/C/D", home: "1B", away: "3A/C/D", next: "QF-2", slot: "home" },
+          { id: "R16-4", label: "1F vs 2E", home: "1F", away: "2E", next: "QF-2", slot: "away" },
+          { id: "R16-5", label: "2B vs 2F", home: "2B", away: "2F", next: "QF-3", slot: "home" },
+          { id: "R16-6", label: "1A vs 3C/D/E", home: "1A", away: "3C/D/E", next: "QF-3", slot: "away" },
+          { id: "R16-7", label: "1C vs 3A/B/F", home: "1C", away: "3A/B/F", next: "QF-4", slot: "home" },
+          { id: "R16-8", label: "1E vs 2D", home: "1E", away: "2D", next: "QF-4", slot: "away" },
+        ],
+        "Quarts": [
+          { id: "QF-1", label: "Vainq. R16-1 / R16-2", homePlaceholder: "Vainqueur R16-1", awayPlaceholder: "Vainqueur R16-2", next: "SF-1", slot: "home" },
+          { id: "QF-2", label: "Vainq. R16-3 / R16-4", homePlaceholder: "Vainqueur R16-3", awayPlaceholder: "Vainqueur R16-4", next: "SF-1", slot: "away" },
+          { id: "QF-3", label: "Vainq. R16-5 / R16-6", homePlaceholder: "Vainqueur R16-5", awayPlaceholder: "Vainqueur R16-6", next: "SF-2", slot: "home" },
+          { id: "QF-4", label: "Vainq. R16-7 / R16-8", homePlaceholder: "Vainqueur R16-7", awayPlaceholder: "Vainqueur R16-8", next: "SF-2", slot: "away" },
+        ],
+        "Demi-finales": [
+          { id: "SF-1", label: "Vainq. QF-1 / QF-2", homePlaceholder: "Vainqueur QF-1", awayPlaceholder: "Vainqueur QF-2", next: "F-1", slot: "home" },
+          { id: "SF-2", label: "Vainq. QF-3 / QF-4", homePlaceholder: "Vainqueur QF-3", awayPlaceholder: "Vainqueur QF-4", next: "F-1", slot: "away" },
+        ],
+        "Finale": [{ id: "F-1", label: "Grande finale", homePlaceholder: "Vainqueur SF-1", awayPlaceholder: "Vainqueur SF-2" }],
+      };
+
+      const thirdSlots = [
+        { code: "3B/E/F", groups: ["B", "E", "F"] },
+        { code: "3A/C/D", groups: ["A", "C", "D"] },
+        { code: "3C/D/E", groups: ["C", "D", "E"] },
+        { code: "3A/B/F", groups: ["A", "B", "F"] },
+      ];
+
+      const state = {
+        groupSelections: {},
+        winners: {},
+        matchAssignments: {},
+        matchNodes: {},
+        thirdAssignments: {},
+      };
+
+      const rankPoints = { 1: 6, 2: 4, 3: 2, 4: 0 };
+
+      function buildGroupCards() {
+        const grid = document.getElementById("groupGrid");
+        grid.innerHTML = "";
+
+        Object.entries(groups).forEach(([letter, teams]) => {
+          const card = document.createElement("div");
+          card.className = "card group-card";
+
+          const title = document.createElement("h3");
+          title.textContent = `Groupe ${letter}`;
+
+          const rows = teams.map((_, idx) => {
+            const row = document.createElement("div");
+            row.className = "select-row";
+            const position = idx + 1;
+            const label = document.createElement("label");
+            label.htmlFor = `group-${letter}-${position}`;
+            label.textContent = `${position}ᵉ place`;
+
+            const select = document.createElement("select");
+            select.id = label.htmlFor;
+            select.dataset.group = letter;
+            select.dataset.rank = position;
+            select.innerHTML = `<option value="">Choisir</option>${teams.map((t) => `<option value="${t}">${t}</option>`).join("")}`;
+            row.append(label, select);
+            return row;
+          });
+
+          card.append(title, ...rows);
+          grid.append(card);
+        });
+      }
+
+      function showAlert(message) {
+        const alertBox = document.getElementById("groupError");
+        alertBox.textContent = message;
+        alertBox.classList.add("show");
+      }
+
+      function clearAlert() {
+        const alertBox = document.getElementById("groupError");
+        alertBox.textContent = "";
+        alertBox.classList.remove("show");
+      }
+
+      function getSelections() {
+        const selections = {};
+        Object.keys(groups).forEach((letter) => {
+          const selects = Array.from(document.querySelectorAll(`select[data-group="${letter}"]`));
+          const picks = selects.map((select) => select.value).filter(Boolean);
+          selections[letter] = picks;
+        });
+        return selections;
+      }
+
+      function validateSelections() {
+        clearAlert();
+        const selections = {};
+
+        for (const [letter, teams] of Object.entries(groups)) {
+          const selects = Array.from(document.querySelectorAll(`select[data-group="${letter}"]`));
+          const picks = selects.map((select) => select.value);
+
+          if (picks.some((p) => !p)) {
+            showAlert(`Complète toutes les places du groupe ${letter}.`);
+            return null;
+          }
+
+          const duplicates = picks.filter((p, idx) => picks.indexOf(p) !== idx);
+          if (duplicates.length) {
+            showAlert(`Chaque équipe du groupe ${letter} doit être unique (doublon détecté : ${duplicates[0]}).`);
+            return null;
+          }
+
+          // Déduire la 4e place
+          const remaining = teams.find((t) => !picks.includes(t));
+          selections[letter] = [...picks, remaining];
+        }
+
+        return selections;
+      }
+
+      function sortBestThirds(selections) {
+        const thirds = Object.entries(selections).map(([group, order]) => ({
+          group,
+          team: order[2],
+          score: rankPoints[3],
+        }));
+
+        thirds.sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          return a.team.localeCompare(b.team, "fr");
+        });
+
+        return thirds.slice(0, 4);
+      }
+
+      function allocateThirds(thirds) {
+        const assignment = {};
+        const used = new Set();
+
+        thirdSlots.forEach((slot) => {
+          let candidate = thirds.find((t) => !used.has(t.team) && slot.groups.includes(t.group));
+          if (!candidate) {
+            candidate = thirds.find((t) => !used.has(t.team));
+          }
+
+          assignment[slot.code] = candidate ? candidate.team : null;
+          if (candidate) used.add(candidate.team);
+        });
+
+        return assignment;
+      }
+
+      function renderQualifiers(selections) {
+        const firstList = document.getElementById("firstList");
+        const secondList = document.getElementById("secondList");
+        const thirdList = document.getElementById("thirdList");
+
+        firstList.innerHTML = "";
+        secondList.innerHTML = "";
+
+        Object.entries(selections).forEach(([group, order]) => {
+          firstList.insertAdjacentHTML(
+            "beforeend",
+            `<div class="pill"><strong>${order[0]}</strong><span class="muted">(${group} - 1er)</span></div>`,
+          );
+          secondList.insertAdjacentHTML(
+            "beforeend",
+            `<div class="pill"><strong>${order[1]}</strong><span class="muted">(${group} - 2e)</span></div>`,
+          );
+        });
+
+        const thirds = sortBestThirds(selections);
+        state.thirdAssignments = allocateThirds(thirds);
+
+        thirdList.innerHTML = "";
+        thirds.forEach((t, idx) => {
+          thirdList.insertAdjacentHTML(
+            "beforeend",
+            `<div class="pill"><strong>${t.team}</strong><span class="muted">(${t.group} - 3e · #${idx + 1})</span></div>`,
+          );
+        });
+
+        if (thirds.length < 4) {
+          thirdList.insertAdjacentHTML("beforeend", `<div class="muted">Pas assez de groupes complets pour déterminer les repêchés.</div>`);
+        }
+      }
+
+      function resolvePlaceholder(code, selections) {
+        const direct = code.match(/^([123])([A-F])$/);
+        if (direct) {
+          const [, rank, group] = direct;
+          const order = selections[group];
+          return order ? order[Number(rank) - 1] : "";
+        }
+
+        const slot = thirdSlots.find((s) => s.code === code);
+        if (slot) {
+          return state.thirdAssignments[code] || "";
+        }
+
+        return "";
+      }
+
+      function resetBracketWinners(matchId) {
+        const current = state.matchNodes[matchId];
+        if (!current) return;
+        current.selected = null;
+        [current.homeEl, current.awayEl].forEach((el) => el.classList.remove("selected"));
+        current.winnerEl.textContent = "Aucun vainqueur pour l'instant";
+
+        if (matchId === "F-1") {
+          document.getElementById("championBadge").textContent = "En attente de finale";
+        }
+
+        if (current.match.next) {
+          assignTeamToMatch(current.match.next, current.match.slot, "");
+          resetBracketWinners(current.match.next);
+        }
+      }
+
+      function assignTeamToMatch(matchId, slot, team) {
+        const target = state.matchNodes[matchId];
+        if (!target) return;
+        target.teams[slot] = team;
+        const element = slot === "home" ? target.homeEl : target.awayEl;
+        element.querySelector(".name").textContent = team || target.match[`${slot}Placeholder`] || "À déterminer";
+        element.classList.toggle("placeholder", !team);
+
+        if (target.selected && target.selected !== team) {
+          target.selected = null;
+          target.winnerEl.textContent = "Aucun vainqueur pour l'instant";
+          target.homeEl.classList.remove("selected");
+          target.awayEl.classList.remove("selected");
+          if (target.match.next) {
+            assignTeamToMatch(target.match.next, target.match.slot, "");
+            resetBracketWinners(target.match.next);
+          }
+        }
+      }
+
+      function setWinner(matchId, team) {
+        const node = state.matchNodes[matchId];
+        if (!node || !team) return;
+
+        node.selected = team;
+        node.winnerEl.textContent = `Vainqueur : ${team}`;
+        node.homeEl.classList.toggle("selected", node.teams.home === team);
+        node.awayEl.classList.toggle("selected", node.teams.away === team);
+
+        if (node.match.next) {
+          assignTeamToMatch(node.match.next, node.match.slot, team);
+        } else if (matchId === "F-1") {
+          const badge = document.getElementById("championBadge");
+          badge.textContent = `Champion : ${team}`;
+        }
+      }
+
+      function createTeamElement(label, slot, matchId) {
+        const el = document.createElement("div");
+        el.className = "team placeholder";
+        el.dataset.slot = slot;
+        el.innerHTML = `<div>
+            <div class="name">${label}</div>
+            <div class="hint">${slot === "home" ? "Équipe 1" : "Équipe 2"}</div>
+          </div>
+          <div style="font-size:12px; color:${slot === "home" ? "#fcd34d" : "#bfdbfe"};">Sélection</div>`;
+
+        el.addEventListener("click", () => {
+          const node = state.matchNodes[matchId];
+          if (!node || !node.teams[slot]) return;
+          setWinner(matchId, node.teams[slot]);
+        });
+
+        return el;
+      }
+
+      function buildBracket() {
+        const container = document.getElementById("bracketGrid");
+        container.innerHTML = "";
+
+        Object.entries(bracketTemplate).forEach(([round, matches]) => {
+          const roundCol = document.createElement("div");
+          const title = document.createElement("h3");
+          title.className = "round-title";
+          title.textContent = round;
+          roundCol.append(title);
+
+          matches.forEach((match) => {
+            const card = document.createElement("div");
+            card.className = "match";
+            const header = document.createElement("h4");
+            header.textContent = match.label;
+            const home = createTeamElement(match.home || match.homePlaceholder, "home", match.id);
+            const away = createTeamElement(match.away || match.awayPlaceholder, "away", match.id);
+            const winner = document.createElement("div");
+            winner.className = "winner";
+            winner.textContent = "Aucun vainqueur pour l'instant";
+
+            card.append(header, home, away, winner);
+            roundCol.append(card);
+
+            state.matchNodes[match.id] = {
+              match,
+              homeEl: home,
+              awayEl: away,
+              winnerEl: winner,
+              teams: { home: "", away: "" },
+              selected: null,
+            };
+          });
+
+          container.append(roundCol);
+        });
+      }
+
+      function populateRoundOf16(selections) {
+        bracketTemplate["Huitièmes"].forEach((match) => {
+          const homeTeam = resolvePlaceholder(match.home, selections);
+          const awayTeam = resolvePlaceholder(match.away, selections);
+          assignTeamToMatch(match.id, "home", homeTeam);
+          assignTeamToMatch(match.id, "away", awayTeam);
+          resetBracketWinners(match.id);
+        });
+
+        // reset champion badge
+        document.getElementById("championBadge").textContent = "En attente de finale";
+      }
+
+      function resetAll() {
+        document.querySelectorAll("select").forEach((select) => (select.value = ""));
+        clearAlert();
+        state.groupSelections = {};
+        document.getElementById("firstList").innerHTML = "";
+        document.getElementById("secondList").innerHTML = "";
+        document.getElementById("thirdList").innerHTML = '<div class="muted">Complétez les groupes pour calculer les repêchés.</div>';
+        Object.keys(state.matchNodes).forEach((id) => {
+          const node = state.matchNodes[id];
+          node.teams = { home: "", away: "" };
+          node.homeEl.querySelector(".name").textContent = node.match.home || node.match.homePlaceholder || "À déterminer";
+          node.awayEl.querySelector(".name").textContent = node.match.away || node.match.awayPlaceholder || "À déterminer";
+          node.homeEl.classList.add("placeholder");
+          node.awayEl.classList.add("placeholder");
+          node.homeEl.classList.remove("selected");
+          node.awayEl.classList.remove("selected");
+          node.winnerEl.textContent = "Aucun vainqueur pour l'instant";
+        });
+        document.getElementById("championBadge").textContent = "En attente de finale";
+      }
+
+      function handleValidation() {
+        const selections = validateSelections();
+        if (!selections) return;
+
+        state.groupSelections = selections;
+        renderQualifiers(selections);
+        populateRoundOf16(selections);
+      }
+
+      function setupTabs() {
+        document.querySelectorAll(".tab").forEach((tab) => {
+          tab.addEventListener("click", () => {
+            document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+            document.querySelectorAll(".panel").forEach((panel) => panel.classList.remove("active"));
+            tab.classList.add("active");
+            document.getElementById(tab.dataset.target).classList.add("active");
+          });
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        buildGroupCards();
+        buildBracket();
+        setupTabs();
+
+        document.getElementById("validateGroups").addEventListener("click", handleValidation);
+        document.getElementById("resetAll").addEventListener("click", resetAll);
+      });
+    </script>
+  </body>
+</html>
