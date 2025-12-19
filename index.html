@@ -237,11 +237,36 @@
         grid-template-columns: repeat(4, minmax(220px, 1fr));
         gap: 12px;
         align-items: start;
+        position: relative;
       }
 
       .round-title {
         margin: 0 0 10px;
         color: #f1f5f9;
+      }
+
+      .round-col {
+        position: relative;
+        padding-right: 18px;
+      }
+
+      .round-col:not(:last-child)::after {
+        content: "➜";
+        position: absolute;
+        top: 50%;
+        right: -12px;
+        transform: translateY(-50%);
+        background: linear-gradient(135deg, rgba(249, 115, 22, 0.85), rgba(59, 130, 246, 0.85));
+        color: #0f172a;
+        font-weight: 800;
+        font-size: 14px;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.12);
       }
 
       .match {
@@ -756,6 +781,7 @@
 
         Object.entries(bracketTemplate).forEach(([round, matches]) => {
           const roundCol = document.createElement("div");
+          roundCol.className = "round-col";
           const title = document.createElement("h3");
           title.className = "round-title";
           title.textContent = round;
